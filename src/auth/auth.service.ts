@@ -2,19 +2,27 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { UsersService } from '../users/users.service';
+import { DoctorsService } from '../doctors/doctors.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { jwtConfig } from '../config/jwt.config';
+import { Role } from '../common/enums/role.enum';
 
 @Injectable()
 export class AuthService {
   constructor(
     private usersService: UsersService,
+    private doctorsService: DoctorsService,
     private jwtService: JwtService,
   ) {}
 
   async register(registerDto: RegisterDto) {
     const user = await this.usersService.create(registerDto);
+
+    // Auto-create an empty doctor profile when a DOCTOR registers
+    if (user.role === Role.DOCTOR) {
+      await this.doctorsService.createProfile(user._id.toString());
+    }
 
     return {
       message: 'Registration successful',
