@@ -5,11 +5,9 @@ import { DoctorsService } from './doctors.service';
 import { DoctorsController } from './doctors.controller';
 
 @Module({
-  imports: [
-    MongooseModule.forFeature([{ name: Doctor.name, schema: DoctorSchema }]),
-  ],
-  providers: [DoctorsService],
+  imports: [MongooseModule.forFeature([{ name: Doctor.name, schema: DoctorSchema }])],
   controllers: [DoctorsController],
-  exports: [DoctorsService], // AppointmentsModule needs DoctorsService
+  providers: [DoctorsService],
+  exports: [DoctorsService],
 })
 export class DoctorsModule {}

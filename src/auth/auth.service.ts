@@ -5,69 +5,33 @@ import { UsersService } from '../users/users.service';
 import { DoctorsService } from '../doctors/doctors.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
-import { jwtConfig } from '../config/jwt.config';
 import { Role } from '../common/enums/role.enum';
 
 @Injectable()
 export class AuthService {
   constructor(
     private usersService: UsersService,
-    private doctorsService: DoctorsService,
     private jwtService: JwtService,
+    private doctorsService: DoctorsService,
   ) {}
 
-  async register(registerDto: RegisterDto) {
-    const user = await this.usersService.create(registerDto);
-
-    // Auto-create an empty doctor profile when a DOCTOR registers
+  async register(dto: RegisterDto) {
+    const user = await this.usersService.create(dto);
     if (user.role === Role.DOCTOR) {
       await this.doctorsService.createProfile(user._id.toString());
     }
-
-    return {
-      message: 'Registration successful',
-      user: {
-        id: user._id,
-        fullName: user.fullName,
-        email: user.email,
-        role: user.role,
-      },
-    };
+    const { password, ...result } = user.toObject();
+    return result;
   }
 
-  async login(loginDto: LoginDto) {
-    const user = await this.usersService.findByEmail(loginDto.email);
+  async login(dto: LoginDto) {
+    const user = await this.usersService.findByEmail(dto.email);
+    if (!user) throw new UnauthorizedException('Invalid credentials');
 
-    if (!user) {
-      throw new UnauthorizedException('Invalid email or password');
-    }
+    const match = await bcrypt.compare(dto.password, user.password);
+    if (!match) throw new UnauthorizedException('Invalid credentials');
 
-    const isPasswordValid = await bcrypt.compare(loginDto.password, user.password);
-
-    if (!isPasswordValid) {
-      throw new UnauthorizedException('Invalid email or password');
-    }
-
-    const payload = {
-      sub: user._id.toString(),
-      email: user.email,
-      role: user.role,
-    };
-
-    const token = this.jwtService.sign(payload, {
-      secret: jwtConfig.secret,
-      expiresIn: jwtConfig.expiresIn,
-    });
-
-    return {
-      message: 'Login successful',
-      accessToken: token,
-      user: {
-        id: user._id,
-        fullName: user.fullName,
-        email: user.email,
-        role: user.role,
-      },
-    };
+    const payload = { sub: user._id.toString(), email: user.email, role: user.role };
+    return { access_token: this.jwtService.sign(payload) };
   }
 }

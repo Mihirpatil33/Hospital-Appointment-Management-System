@@ -1,102 +1,65 @@
-import {
-  Controller,
-  Post,
-  Get,
-  Patch,
-  Body,
-  Param,
-  UseGuards,
-  Request,
-} from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiBearerAuth,
-} from '@nestjs/swagger';
-import { AppointmentsService } from './appointments.service';
-import { CreateAppointmentDto } from './dto/create-appointment.dto';
-import { RescheduleAppointmentDto } from './dto/reschedule-appointment.dto';
+import { Body, Controller, Get, Param, Patch, Post, Request, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 import { Role } from '../common/enums/role.enum';
+import { AppointmentsService } from './appointments.service';
+import { CreateAppointmentDto } from './dto/create-appointment.dto';
+import { RescheduleAppointmentDto } from './dto/reschedule-appointment.dto';
 
 @ApiTags('Appointments')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard, RolesGuard) // All appointment routes require JWT
+@UseGuards(JwtAuthGuard)
 @Controller('appointments')
 export class AppointmentsController {
-  constructor(private appointmentsService: AppointmentsService) {}
+  constructor(private readonly appointmentsService: AppointmentsService) {}
 
-  // PATIENT books an appointment
   @Post()
+  @UseGuards(RolesGuard)
   @Roles(Role.PATIENT)
-  @ApiOperation({ summary: 'Book an appointment (PATIENT only)' })
-  @ApiResponse({ status: 201, description: 'Appointment booked' })
-  @ApiResponse({ status: 400, description: 'Validation failed / duplicate / past date' })
-  @ApiResponse({ status: 403, description: 'Forbidden — not a patient' })
-  create(@Request() req: any, @Body() dto: CreateAppointmentDto) {
-    return this.appointmentsService.create(req.user._id.toString(), dto);
+  @ApiOperation({ summary: 'Book appointment (PATIENT only)' })
+  create(@Request() req, @Body() dto: CreateAppointmentDto) {
+    return this.appointmentsService.create(req.user.sub, dto);
   }
 
-  // PATIENT views their own appointments
   @Get('my-appointments')
+  @UseGuards(RolesGuard)
   @Roles(Role.PATIENT)
-  @ApiOperation({ summary: 'Patient views their own appointments (PATIENT only)' })
-  @ApiResponse({ status: 200, description: 'Appointments returned' })
-  getMyAppointments(@Request() req: any) {
-    return this.appointmentsService.findPatientAppointments(
-      req.user._id.toString(),
-    );
+  @ApiOperation({ summary: "Patient's own appointments (PATIENT only)" })
+  myAppointments(@Request() req) {
+    return this.appointmentsService.getPatientAppointments(req.user.sub);
   }
 
-  // DOCTOR views appointments assigned to them
   @Get('doctor')
+  @UseGuards(RolesGuard)
   @Roles(Role.DOCTOR)
-  @ApiOperation({ summary: 'Doctor views their appointments (DOCTOR only)' })
-  @ApiResponse({ status: 200, description: 'Appointments returned' })
-  getDoctorAppointments(@Request() req: any) {
-    return this.appointmentsService.findDoctorAppointments(
-      req.user._id.toString(),
-    );
+  @ApiOperation({ summary: "Doctor's appointments (DOCTOR only)" })
+  doctorAppointments(@Request() req) {
+    return this.appointmentsService.getDoctorAppointments(req.user.sub);
   }
 
-  // DOCTOR confirms an appointment
   @Patch(':id/confirm')
+  @UseGuards(RolesGuard)
   @Roles(Role.DOCTOR)
-  @ApiOperation({ summary: 'Confirm an appointment (DOCTOR only)' })
-  @ApiResponse({ status: 200, description: 'Appointment confirmed' })
-  @ApiResponse({ status: 400, description: 'Cannot confirm — wrong status' })
-  confirm(@Param('id') id: string, @Request() req: any) {
-    return this.appointmentsService.confirm(id, req.user._id.toString());
+  @ApiOperation({ summary: 'Confirm appointment (DOCTOR only)' })
+  confirm(@Param('id') id: string, @Request() req) {
+    return this.appointmentsService.confirm(id, req.user.sub);
   }
 
-  // DOCTOR cancels an appointment
   @Patch(':id/cancel')
+  @UseGuards(RolesGuard)
   @Roles(Role.DOCTOR)
-  @ApiOperation({ summary: 'Cancel an appointment (DOCTOR only)' })
-  @ApiResponse({ status: 200, description: 'Appointment cancelled' })
-  @ApiResponse({ status: 400, description: 'Cannot cancel — wrong status' })
-  cancel(@Param('id') id: string, @Request() req: any) {
-    return this.appointmentsService.cancel(id, req.user._id.toString());
+  @ApiOperation({ summary: 'Cancel appointment (DOCTOR only)' })
+  cancel(@Param('id') id: string, @Request() req) {
+    return this.appointmentsService.cancel(id, req.user.sub);
   }
 
-  // DOCTOR reschedules an appointment
   @Patch(':id/reschedule')
+  @UseGuards(RolesGuard)
   @Roles(Role.DOCTOR)
-  @ApiOperation({ summary: 'Reschedule an appointment (DOCTOR only)' })
-  @ApiResponse({ status: 200, description: 'Appointment rescheduled' })
-  @ApiResponse({ status: 400, description: 'Cannot reschedule — past date or wrong status' })
-  reschedule(
-    @Param('id') id: string,
-    @Request() req: any,
-    @Body() dto: RescheduleAppointmentDto,
-  ) {
-    return this.appointmentsService.reschedule(
-      id,
-      req.user._id.toString(),
-      dto,
-    );
+  @ApiOperation({ summary: 'Reschedule appointment (DOCTOR only)' })
+  reschedule(@Param('id') id: string, @Request() req, @Body() dto: RescheduleAppointmentDto) {
+    return this.appointmentsService.reschedule(id, req.user.sub, dto);
   }
 }

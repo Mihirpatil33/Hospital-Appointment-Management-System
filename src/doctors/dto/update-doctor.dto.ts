@@ -1,36 +1,36 @@
-import { IsString, IsNumber, IsBoolean, IsOptional, Min } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
+import { IsBoolean, IsNumber, IsOptional, IsString, Min } from 'class-validator';
 
 export class UpdateDoctorDto {
   @ApiPropertyOptional({ example: 'Cardiology' })
-  @IsOptional()
   @IsString()
+  @IsOptional()
   specialization?: string;
 
   @ApiPropertyOptional({ example: 5 })
-  @IsOptional()
   @IsNumber()
   @Min(0)
+  @IsOptional()
   experience?: number;
 
   @ApiPropertyOptional({ example: 'MBBS, MD' })
-  @IsOptional()
   @IsString()
+  @IsOptional()
   qualification?: string;
 
   @ApiPropertyOptional({ example: 500 })
-  @IsOptional()
   @IsNumber()
   @Min(0)
+  @IsOptional()
   consultationFee?: number;
 
-  @ApiPropertyOptional({ example: 'Experienced cardiologist with 5 years...' })
-  @IsOptional()
+  @ApiPropertyOptional({ example: 'Experienced cardiologist...' })
   @IsString()
+  @IsOptional()
   about?: string;
 
   @ApiPropertyOptional({ example: true })
-  @IsOptional()
   @IsBoolean()
+  @IsOptional()
   isAvailable?: boolean;
 }

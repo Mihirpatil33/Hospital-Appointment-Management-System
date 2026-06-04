@@ -1,24 +1,22 @@
-import { IsString, IsNotEmpty, IsDateString, IsOptional } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsDateString, IsMongoId, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class CreateAppointmentDto {
-  @ApiProperty({ example: '665f1b2c3d4e5f6a7b8c9d0e', description: 'Doctor profile ID' })
-  @IsString()
-  @IsNotEmpty()
+  @ApiProperty({ example: '665f1a2b3c4d5e6f7a8b9c0d' })
+  @IsMongoId()
   doctorId: string;
 
-  @ApiProperty({ example: '2025-12-01T10:00:00.000Z', description: 'Must be a future date' })
+  @ApiProperty({ example: '2025-12-01T10:00:00.000Z' })
   @IsDateString()
-  @IsNotEmpty()
   appointmentDate: string;
 
-  @ApiProperty({ example: 'Chest pain and shortness of breath' })
+  @ApiProperty({ example: 'Fever and cold for 3 days' })
   @IsString()
   @IsNotEmpty()
   reason: string;
 
-  @ApiPropertyOptional({ example: 'Patient has history of hypertension' })
-  @IsOptional()
+  @ApiPropertyOptional({ example: 'Patient has no allergies' })
   @IsString()
+  @IsOptional()
   notes?: string;
 }

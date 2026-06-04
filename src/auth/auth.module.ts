@@ -6,19 +6,18 @@ import { AuthController } from './auth.controller';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { UsersModule } from '../users/users.module';
 import { DoctorsModule } from '../doctors/doctors.module';
-import { jwtConfig } from '../config/jwt.config';
 
 @Module({
   imports: [
-    UsersModule,
-    DoctorsModule, // needed for auto doctor profile creation
     PassportModule,
     JwtModule.register({
-      secret: jwtConfig.secret,
-      signOptions: { expiresIn: jwtConfig.expiresIn },
+      secret: process.env.JWT_SECRET,
+      signOptions: { expiresIn: process.env.JWT_EXPIRES_IN ?? '7d' },
     }),
+    UsersModule,
+    DoctorsModule,
   ],
-  providers: [AuthService, JwtStrategy],
   controllers: [AuthController],
+  providers: [AuthService, JwtStrategy],
 })
 export class AuthModule {}

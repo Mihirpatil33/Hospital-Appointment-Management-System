@@ -1,11 +1,13 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
-import { AppointmentStatus } from '../../common/enums/appointment-status.enum';
 
-export type AppointmentDocument = Appointment & Document;
+export type PrescriptionDocument = Prescription & Document;
 
 @Schema({ timestamps: true })
-export class Appointment {
+export class Prescription {
+  @Prop({ type: Types.ObjectId, ref: 'Appointment', required: true })
+  appointmentId: Types.ObjectId;
+
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
   patientId: Types.ObjectId;
 
@@ -13,16 +15,13 @@ export class Appointment {
   doctorId: Types.ObjectId;
 
   @Prop({ required: true })
-  appointmentDate: Date;
-
-  @Prop({ default: AppointmentStatus.PENDING, enum: AppointmentStatus })
-  status: AppointmentStatus;
+  diagnosis: string;
 
   @Prop({ required: true })
-  reason: string;
+  prescription: string;
 
   @Prop({ default: '' })
-  notes: string;
+  treatmentPlan: string;
 }
 
-export const AppointmentSchema = SchemaFactory.createForClass(Appointment);
+export const PrescriptionSchema = SchemaFactory.createForClass(Prescription);

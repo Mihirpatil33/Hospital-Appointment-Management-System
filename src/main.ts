@@ -1,39 +1,29 @@
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
-import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
+import { ValidationPipe } from '@nestjs/common';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // Enable CORS for future frontend
   app.enableCors();
 
-  // Global validation pipe - enforces all DTOs
   app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,        // Strip unknown fields
-      forbidNonWhitelisted: true,  // Error on unknown fields
-      transform: true,        // Auto-transform types
-    }),
+    new ValidationPipe({ whitelist: true, transform: true }),
   );
 
-  // Swagger setup
   const config = new DocumentBuilder()
-    .setTitle('Hospital Appointment System API')
-    .setDescription('Backend API for Hospital Appointment Management System')
+    .setTitle('Hospital Appointment API')
+    .setDescription('Hospital Appointment Management System')
     .setVersion('1.0')
     .addBearerAuth()
     .build();
-
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, document);
 
-  const port = process.env.PORT || 3000;
+  const port = process.env.PORT ?? 3000;
   await app.listen(port);
-
-  console.log(`🏥 Hospital API running on: http://localhost:${port}`);
-  console.log(`📚 Swagger docs at: http://localhost:${port}/api/docs`);
+  console.log(`Server running on http://localhost:${port}`);
+  console.log(`Swagger UI: http://localhost:${port}/api/docs`);
 }
-
 bootstrap();

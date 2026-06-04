@@ -1,28 +1,26 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { HydratedDocument, Types } from 'mongoose';
+import { Document, Types } from 'mongoose';
 
-export type DoctorDocument = HydratedDocument<Doctor>;
+export type DoctorDocument = Doctor & Document;
 
 @Schema({ timestamps: true })
 export class Doctor {
-  // One-to-one link to the users collection
   @Prop({ type: Types.ObjectId, ref: 'User', required: true, unique: true })
   userId: Types.ObjectId;
 
-  // Not required at creation — doctor fills these in via PATCH /doctors/profile
-  @Prop({ trim: true, default: '' })
+  @Prop({ default: '' })
   specialization: string;
 
-  @Prop({ min: 0, default: 0 })
+  @Prop({ default: 0 })
   experience: number;
 
-  @Prop({ trim: true, default: '' })
+  @Prop({ default: '' })
   qualification: string;
 
-  @Prop({ min: 0, default: 0 })
+  @Prop({ default: 0 })
   consultationFee: number;
 
-  @Prop({ trim: true, default: '' })
+  @Prop({ default: '' })
   about: string;
 
   @Prop({ default: true })
@@ -30,6 +28,3 @@ export class Doctor {
 }
 
 export const DoctorSchema = SchemaFactory.createForClass(Doctor);
-
-// Text index for search by specialization
-DoctorSchema.index({ specialization: 'text' });
