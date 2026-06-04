@@ -20,8 +20,12 @@ export class AuthService {
     if (user.role === Role.DOCTOR) {
       await this.doctorsService.createProfile(user._id.toString());
     }
-    const { password, ...result } = user.toObject();
-    return result;
+    const { password, ...userData } = user.toObject();
+    const payload = { sub: user._id.toString(), email: user.email, role: user.role };
+    return {
+      access_token: this.jwtService.sign(payload),
+      user: userData,
+    };
   }
 
   async login(dto: LoginDto) {
@@ -31,7 +35,11 @@ export class AuthService {
     const match = await bcrypt.compare(dto.password, user.password);
     if (!match) throw new UnauthorizedException('Invalid credentials');
 
+    const { password, ...userData } = user.toObject();
     const payload = { sub: user._id.toString(), email: user.email, role: user.role };
-    return { access_token: this.jwtService.sign(payload) };
+    return {
+      access_token: this.jwtService.sign(payload),
+      user: userData,
+    };
   }
 }

@@ -49,7 +49,10 @@ export class AppointmentsService {
   async getPatientAppointments(patientId: string): Promise<Appointment[]> {
     return this.appointmentModel
       .find({ patientId: new Types.ObjectId(patientId) })
-      .populate('doctorId')
+      .populate({
+  path: 'doctorId',
+  populate: { path: 'userId', select: 'fullName email' },
+})
       .sort({ appointmentDate: -1 })
       .lean();
   }
